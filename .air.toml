@@ -1,0 +1,10 @@
+# .air.toml
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  bin = "tmp/myapp"
+  cmd = "go build -o tmp/myapp ."
+
+[run]
+  cmd = "./cmd"
