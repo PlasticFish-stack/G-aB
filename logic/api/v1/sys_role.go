@@ -1,8 +1,8 @@
 package V1
 
 import (
-	"fmt"
 	"net/http"
+	"project/logic"
 	"project/logic/controll"
 	"project/logic/model"
 	"strconv"
@@ -10,24 +10,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RoleAdd(c *gin.Context) {
+type requesetRoleBindMenu struct {
+	RoleId  uint   `json:"roleId"`
+	MenuIds []uint `json:"menuIds"`
+}
+
+type requesetRoleBindApiAndField struct {
+	RoleId uint            `json:"roleId"`
+	ApiIds map[uint][]uint `json:"apiIds"`
+}
+
+type RoleApi struct{}
+
+func (r *RoleApi) Add(c *gin.Context) {
 	responseBody := &Response{Success: true}
-	var role model.Role
-	err := c.ShouldBindJSON(&role)
-	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+	var requeset model.Role
+	if err := c.ShouldBindJSON(&requeset); err != nil {
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
-	err = controll.RoleAdd(role.Name, role.Identifier, role.Description)
-	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+	if err := systemService.AddRole(
+		logic.Gorm,
+		requeset.Name,
+		requeset.Identifier,
+		requeset.Description,
+	); err != nil {
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
@@ -35,24 +44,23 @@ func RoleAdd(c *gin.Context) {
 	c.JSON(http.StatusOK, responseBody)
 }
 
-func RoleUpdate(c *gin.Context) {
+func (r *RoleApi) Update(c *gin.Context) {
 	responseBody := &Response{Success: true}
-	var role model.Role
-	err := c.ShouldBindJSON(&role)
-	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+	var requeset model.Role
+	if err := c.ShouldBindJSON(&requeset); err != nil {
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
-	err = controll.RoleUpdate(role.Id, role.Name, role.Identifier, role.Description, role.Status)
-	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+	if err := systemService.UpdateRole(
+		logic.Gorm,
+		requeset.Id,
+		requeset.Name,
+		requeset.Identifier,
+		requeset.Description,
+		requeset.Status,
+	); err != nil {
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
@@ -60,24 +68,16 @@ func RoleUpdate(c *gin.Context) {
 	c.JSON(http.StatusOK, responseBody)
 }
 
-func RoleDelete(c *gin.Context) {
+func (r *RoleApi) Delete(c *gin.Context) {
 	responseBody := &Response{Success: true}
-	var role model.Role
-	err := c.ShouldBindJSON(&role)
-	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+	var requeset requesetRoleBindMenu
+	if err := c.ShouldBindJSON(&requeset); err != nil {
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
-	err = controll.RoleDelete(role.Id, role.Name)
-	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+	if err := controll.RoleDelete(requeset.RoleId); err != nil {
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
@@ -85,69 +85,45 @@ func RoleDelete(c *gin.Context) {
 	c.JSON(http.StatusOK, responseBody)
 }
 
-func RoleBindMenu(c *gin.Context) {
+func (r *RoleApi) BindMenu(c *gin.Context) {
 	responseBody := &Response{Success: true}
-	var bind struct {
-		RoleId uint   `json:"roleId"`
-		MenuId []uint `json:"menuId"`
-	}
-	err := c.ShouldBindJSON(&bind)
-	fmt.Println(bind)
-	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+	var requeset requesetRoleBindMenu
+	if err := c.ShouldBindJSON(&requeset); err != nil {
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
-	if err := controll.BindRoleMenu(bind.RoleId, bind.MenuId); err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
-		c.JSON(http.StatusInternalServerError, responseBody)
+	if err := systemService.BindMenuToRole(logic.Gorm, requeset.RoleId, requeset.MenuIds); err != nil {
+		isErr(err, responseBody)
+		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
 	responseBody.Data = "绑定成功"
 	c.JSON(http.StatusOK, responseBody)
 }
 
-// func RoleUnBindMenu(c *gin.Context) {
-// 	responseBody := &Response{Success: true}
-// 	var bind struct {
-// 		RoleId uint   `json:"role_id"`
-// 		MenuId []uint `json:"menu_id"`
-// 	}
-// 	err := c.ShouldBindJSON(&bind)
-// 	if err != nil {
-// 		responseBody.Success = false
-// 		responseBody.Data = map[string]interface{}{
-// 			"error": err.Error(),
-// 		}
-// 		c.JSON(http.StatusNotFound, responseBody)
-// 		return
-// 	}
-// 	if err := controll.UnBindRoleMenu(bind.RoleId, bind.MenuId); err != nil {
-// 		responseBody.Success = false
-// 		responseBody.Data = map[string]interface{}{
-// 			"error": err.Error(),
-// 		}
-// 		c.JSON(http.StatusInternalServerError, responseBody)
-// 		return
-// 	}
-// 	responseBody.Data = "解绑成功"
-// 	c.JSON(http.StatusOK, responseBody)
-// }
+func (r *RoleApi) BindApiField(c *gin.Context) {
+	responseBody := &Response{Success: true}
+	var requeset requesetRoleBindApiAndField
+	if err := c.ShouldBindJSON(&requeset); err != nil {
+		isErr(err, responseBody)
+		c.JSON(http.StatusNotFound, responseBody)
+		return
+	}
+	if err := systemService.BindApiAndFieldToRole(logic.Gorm, requeset.RoleId, requeset.ApiIds); err != nil {
+		isErr(err, responseBody)
+		c.JSON(http.StatusNotFound, responseBody)
+		return
+	}
+	responseBody.Data = "绑定成功"
+	c.JSON(http.StatusOK, responseBody)
+}
 
-func RoleGetAll(c *gin.Context) {
+func (r *RoleApi) GetGroup(c *gin.Context) {
 	responseBody := &Response{Success: true}
 	result, err := controll.RoleGetAll()
 	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
@@ -155,24 +131,37 @@ func RoleGetAll(c *gin.Context) {
 	c.JSON(http.StatusOK, responseBody)
 }
 
-func GetRoleBindMenu(c *gin.Context) {
+func (r *RoleApi) GetBindMenu(c *gin.Context) {
 	responseBody := &Response{Success: true}
-	froleId := c.Query("roleId")
-	roleId, err := strconv.Atoi(froleId)
+	queryRoleId := c.Query("roleId")
+	roleId, err := strconv.Atoi(queryRoleId)
 	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
-	result, err := controll.GetBindRoleMenu(uint(roleId))
+	result, err := systemService.GetRoleBindMenu(logic.Gorm, uint(roleId))
 	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+		isErr(err, responseBody)
+		c.JSON(http.StatusNotFound, responseBody)
+		return
+	}
+	responseBody.Data = result
+	c.JSON(http.StatusOK, responseBody)
+}
+
+func (r *RoleApi) GetBindApiField(c *gin.Context) {
+	responseBody := &Response{Success: true}
+	queryRoleId := c.Query("roleId")
+	roleId, err := strconv.Atoi(queryRoleId)
+	if err != nil {
+		isErr(err, responseBody)
+		c.JSON(http.StatusNotFound, responseBody)
+		return
+	}
+	result, err := systemService.GetRoleBindApiField(logic.Gorm, uint(roleId))
+	if err != nil {
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}

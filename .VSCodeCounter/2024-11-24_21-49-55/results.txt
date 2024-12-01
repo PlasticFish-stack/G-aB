@@ -1,0 +1,109 @@
+Date : 2024-11-24 21:49:55
+Directory : /home/golang
+Total : 58 files,  4799 codes, 0 comments, 465 blanks, all 5264 lines
+
+Languages
++------------------+------------+------------+------------+------------+------------+
+| language         | files      | code       | comment    | blank      | total      |
++------------------+------------+------------+------------+------------+------------+
+| Go               |         56 |      4,375 |          0 |        459 |      4,834 |
+| Go Checksum File |          1 |        359 |          0 |          1 |        360 |
+| Go Module File   |          1 |         65 |          0 |          5 |         70 |
++------------------+------------+------------+------------+------------+------------+
+
+Directories
++-----------------------------------------------+------------+------------+------------+------------+------------+
+| path                                          | files      | code       | comment    | blank      | total      |
++-----------------------------------------------+------------+------------+------------+------------+------------+
+| .                                             |         58 |      4,799 |          0 |        465 |      5,264 |
+| . (Files)                                     |          3 |        466 |          0 |         13 |        479 |
+| console                                       |          2 |         92 |          0 |         20 |        112 |
+| console (Files)                               |          1 |         26 |          0 |          6 |         32 |
+| console/logger                                |          1 |         66 |          0 |         14 |         80 |
+| logic                                         |         49 |      3,992 |          0 |        404 |      4,396 |
+| logic (Files)                                 |          1 |         58 |          0 |          9 |         67 |
+| logic/api                                     |          9 |      1,262 |          0 |        104 |      1,366 |
+| logic/api/v1                                  |          9 |      1,262 |          0 |        104 |      1,366 |
+| logic/controll                                |          6 |        483 |          0 |         54 |        537 |
+| logic/filtering                               |          2 |          7 |          0 |          5 |         12 |
+| logic/model                                   |         16 |        734 |          0 |         98 |        832 |
+| logic/model (Files)                           |          5 |        574 |          0 |         63 |        637 |
+| logic/model/excel                             |          1 |         18 |          0 |          4 |         22 |
+| logic/model/product                           |          6 |         83 |          0 |         19 |        102 |
+| logic/model/rate                              |          1 |         17 |          0 |          3 |         20 |
+| logic/model/system                            |          3 |         42 |          0 |          9 |         51 |
+| logic/service                                 |         15 |      1,448 |          0 |        134 |      1,582 |
+| logic/service (Files)                         |          1 |         12 |          0 |          4 |         16 |
+| logic/service/excel                           |          2 |        447 |          0 |         26 |        473 |
+| logic/service/product                         |          7 |        754 |          0 |         68 |        822 |
+| logic/service/rate                            |          2 |        112 |          0 |         14 |        126 |
+| logic/service/system                          |          2 |         77 |          0 |         10 |         87 |
+| logic/service/tool                            |          1 |         46 |          0 |         12 |         58 |
+| utils                                         |          2 |         82 |          0 |         12 |         94 |
+| web                                           |          2 |        167 |          0 |         16 |        183 |
++-----------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-----------------------------------------------+------------------+------------+------------+------------+------------+
+| filename                                      | language         | code       | comment    | blank      | total      |
++-----------------------------------------------+------------------+------------+------------+------------+------------+
+| /home/golang/console/cron.go                  | Go               |         26 |          0 |          6 |         32 |
+| /home/golang/console/logger/logger.go         | Go               |         66 |          0 |         14 |         80 |
+| /home/golang/go.mod                           | Go Module File   |         65 |          0 |          5 |         70 |
+| /home/golang/go.sum                           | Go Checksum File |        359 |          0 |          1 |        360 |
+| /home/golang/logic/api/v1/enter.go            | Go               |         24 |          0 |          5 |         29 |
+| /home/golang/logic/api/v1/excel.go            | Go               |        265 |          0 |         23 |        288 |
+| /home/golang/logic/api/v1/prod.go             | Go               |        246 |          0 |         23 |        269 |
+| /home/golang/logic/api/v1/prod_brand.go       | Go               |         72 |          0 |          7 |         79 |
+| /home/golang/logic/api/v1/prod_type.go        | Go               |         74 |          0 |          8 |         82 |
+| /home/golang/logic/api/v1/rate.go             | Go               |         47 |          0 |          7 |         54 |
+| /home/golang/logic/api/v1/sys_menu.go         | Go               |        127 |          0 |          6 |        133 |
+| /home/golang/logic/api/v1/sys_role.go         | Go               |        176 |          0 |         12 |        188 |
+| /home/golang/logic/api/v1/sys_user.go         | Go               |        231 |          0 |         13 |        244 |
+| /home/golang/logic/controll/enter.go          | Go               |          5 |          0 |          3 |          8 |
+| /home/golang/logic/controll/sys_auth.go       | Go               |         65 |          0 |          9 |         74 |
+| /home/golang/logic/controll/sys_menu.go       | Go               |         65 |          0 |          6 |         71 |
+| /home/golang/logic/controll/sys_role.go       | Go               |         81 |          0 |          8 |         89 |
+| /home/golang/logic/controll/sys_routes.go     | Go               |        119 |          0 |         13 |        132 |
+| /home/golang/logic/controll/sys_user.go       | Go               |        148 |          0 |         15 |        163 |
+| /home/golang/logic/filtering/enter.go         | Go               |          5 |          0 |          3 |          8 |
+| /home/golang/logic/filtering/product.go       | Go               |          2 |          0 |          2 |          4 |
+| /home/golang/logic/model/excel/excel.go       | Go               |         18 |          0 |          4 |         22 |
+| /home/golang/logic/model/global.go            | Go               |         13 |          0 |          6 |         19 |
+| /home/golang/logic/model/product/brand.go     | Go               |         10 |          0 |          3 |         13 |
+| /home/golang/logic/model/product/cost.go      | Go               |         15 |          0 |          3 |         18 |
+| /home/golang/logic/model/product/field.go     | Go               |          8 |          0 |          3 |         11 |
+| /home/golang/logic/model/product/formula.go   | Go               |          9 |          0 |          3 |         12 |
+| /home/golang/logic/model/product/product.go   | Go               |         25 |          0 |          4 |         29 |
+| /home/golang/logic/model/product/type.go      | Go               |         16 |          0 |          3 |         19 |
+| /home/golang/logic/model/rate/rate.go         | Go               |         17 |          0 |          3 |         20 |
+| /home/golang/logic/model/sys_field.go         | Go               |          9 |          0 |          2 |         11 |
+| /home/golang/logic/model/sys_menu.go          | Go               |        174 |          0 |         17 |        191 |
+| /home/golang/logic/model/sys_role.go          | Go               |        217 |          0 |         22 |        239 |
+| /home/golang/logic/model/sys_user.go          | Go               |        161 |          0 |         16 |        177 |
+| /home/golang/logic/model/system/menu.go       | Go               |         16 |          0 |          3 |         19 |
+| /home/golang/logic/model/system/role.go       | Go               |         10 |          0 |          3 |         13 |
+| /home/golang/logic/model/system/user.go       | Go               |         16 |          0 |          3 |         19 |
+| /home/golang/logic/postgresql.go              | Go               |         58 |          0 |          9 |         67 |
+| /home/golang/logic/service/enter.go           | Go               |         12 |          0 |          4 |         16 |
+| /home/golang/logic/service/excel/enter.go     | Go               |          3 |          0 |          3 |          6 |
+| /home/golang/logic/service/excel/excel.go     | Go               |        444 |          0 |         23 |        467 |
+| /home/golang/logic/service/product/brand.go   | Go               |         77 |          0 |         10 |         87 |
+| /home/golang/logic/service/product/cost.go    | Go               |        113 |          0 |         12 |        125 |
+| /home/golang/logic/service/product/enter.go   | Go               |          3 |          0 |          3 |          6 |
+| /home/golang/logic/service/product/field.go   | Go               |         57 |          0 |          8 |         65 |
+| /home/golang/logic/service/product/formula.go | Go               |         57 |          0 |          8 |         65 |
+| /home/golang/logic/service/product/product.go | Go               |        202 |          0 |         15 |        217 |
+| /home/golang/logic/service/product/type.go    | Go               |        245 |          0 |         12 |        257 |
+| /home/golang/logic/service/rate/enter.go      | Go               |          3 |          0 |          3 |          6 |
+| /home/golang/logic/service/rate/rate.go       | Go               |        109 |          0 |         11 |        120 |
+| /home/golang/logic/service/system/enter.go    | Go               |          3 |          0 |          3 |          6 |
+| /home/golang/logic/service/system/field.go    | Go               |         74 |          0 |          7 |         81 |
+| /home/golang/logic/service/tool/limit.go      | Go               |         46 |          0 |         12 |         58 |
+| /home/golang/main.go                          | Go               |         42 |          0 |          7 |         49 |
+| /home/golang/utils/leveldb.go                 | Go               |         43 |          0 |          5 |         48 |
+| /home/golang/utils/string.go                  | Go               |         39 |          0 |          7 |         46 |
+| /home/golang/web/middle.go                    | Go               |         48 |          0 |          5 |         53 |
+| /home/golang/web/web.go                       | Go               |        119 |          0 |         11 |        130 |
+| Total                                         |                  |      4,799 |          0 |        465 |      5,264 |
++-----------------------------------------------+------------------+------------+------------+------------+------------+

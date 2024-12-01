@@ -14,5 +14,5 @@ type Type struct {
 	Children    []Type    `gorm:"-" json:"children,omitempty"`
 	Fields      []Field   `gorm:"foreignKey:TypeId" json:"fields"`
 	Formulas    []Formula `gorm:"foreignKey:TypeId" json:"formulas"`
-	Product     []Product `gorm:"foreignKey:TypeId" json:"products"`
+	Product     []Product `gorm:"foreignKey:TypeId" json:"-"`
 }

@@ -11,6 +11,7 @@ import (
 type Claims struct {
 	UserName string
 	UserId   uint
+	RoleId   []uint
 	jwt.RegisteredClaims
 }
 
@@ -31,13 +32,14 @@ func getSecretKey(key string) string {
 	return sk
 }
 
-func GenerateJwt(username string, userid uint) (accessToken string, refreshToken string, expTime time.Time, err error) {
+func GenerateJwt(username string, userid uint, roleId []uint) (accessToken string, refreshToken string, expTime time.Time, err error) {
 	accessExpiration := time.Now().Add(30 * time.Minute)
 	expTime = time.Now().Add(30 * time.Minute)
 	refreshExpiration := time.Now().Add(24 * time.Hour)
 	accessClaims := &Claims{
 		UserName: username,
 		UserId:   userid,
+		RoleId:   roleId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(accessExpiration),
 		},
@@ -45,6 +47,7 @@ func GenerateJwt(username string, userid uint) (accessToken string, refreshToken
 	refreshClaims := &Claims{
 		UserName: username,
 		UserId:   userid,
+		RoleId:   roleId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(refreshExpiration),
 		},
@@ -68,6 +71,6 @@ func Refresh(resultToken string) (tokens JwtToken, err error) {
 	if err != nil || !token.Valid {
 		return tokens, fmt.Errorf("解析token出错,请检查")
 	}
-	tokens.AccessToken, tokens.RefreshToken, tokens.ExpTime, err = GenerateJwt(claims.UserName, claims.UserId)
+	tokens.AccessToken, tokens.RefreshToken, tokens.ExpTime, err = GenerateJwt(claims.UserName, claims.UserId, claims.RoleId)
 	return
 }

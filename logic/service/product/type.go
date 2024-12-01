@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"project/logic"
 	"project/logic/model/product"
-	"project/logic/service/tool"
 	"time"
 
 	"gorm.io/gorm"
@@ -14,7 +13,7 @@ import (
 
 func ExpandTypeGroup(parentId uint, typeParent *product.Type) (err error) {
 	var childrenType []*product.Type
-	err = logic.Gorm.Where("parent_id = ?", parentId).Find(&childrenType).Error
+	err = logic.Gorm.Where("parent_id = ?", parentId).Preload(clause.Associations).Find(&childrenType).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
@@ -31,29 +30,21 @@ func ExpandTypeGroup(parentId uint, typeParent *product.Type) (err error) {
 	return nil
 }
 
-func (serviceProduct *ServiceProductGroup) SearchTypeTree(limits tool.RequestLimits) ([]*product.Type, *tool.ResponseLimits, error) {
+func (serviceProduct *ServiceProductGroup) SearchTypeTree() ([]*product.Type, error) {
 	var types []*product.Type
-	var total int64
-	offset, err := limits.GetOffset()
-	if err != nil {
-		return nil, nil, err
-	}
 	if err := logic.Gorm.Order("type_sort").
 		Where("parent_id=?", 0).
-		Count(&total).
-		Offset(offset).
-		Limit(limits.PageSize).
+		Preload(clause.Associations).
 		Find(&types).Error; err != nil {
-		return nil, nil, fmt.Errorf("查询产品类别失败: %v", err)
+		return nil, fmt.Errorf("查询产品类别失败: %v", err)
 	}
 	for _, v := range types {
 		err := ExpandTypeGroup(v.Id, v)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 	}
-	ResponseLimit := tool.NewLimits(total, limits.PageSize, limits.PageNum)
-	return types, ResponseLimit, nil
+	return types, nil
 }
 
 func (serviceProduct *ServiceProductGroup) SearchType(tid uint) (*product.Type, error) {
@@ -71,7 +62,14 @@ func (serviceProduct *ServiceProductGroup) AddType(t product.Type) error {
 			return fmt.Errorf("查询不到父菜单: %v", err)
 		}
 	}
-	if err := logic.Gorm.Create(t).Error; err != nil {
+	var repartType product.Type
+	if err := logic.Gorm.Where("name = ?", t.Name).First(&repartType).Error; err == nil {
+		if repartType.Name == t.Name {
+			return fmt.Errorf("类别已经存在: %v", t.Name)
+		}
+	}
+	fmt.Println(t)
+	if err := logic.Gorm.Create(&t).Error; err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			return fmt.Errorf("产品类别名称已存在: %v", err)
 		}
@@ -99,12 +97,18 @@ func (serviceProduct *ServiceProductGroup) UpdateType(t product.Type) error {
 		tx.Rollback()
 		return fmt.Errorf("查询产品类别失败: %v", err)
 	}
+	var repartType product.Type
+	if err := tx.Where("name = ?", t.Name).First(&repartType).Error; err == nil {
+		if repartType.Name == t.Name && repartType.Id != t.Id {
+			tx.Rollback()
+			return fmt.Errorf("Name已经存在: %v", err)
+		}
+	}
 	if err := tx.Model(&responseProductType).Updates(&t).Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("更新产品类别失败,请检查: %v", err)
 	}
-
-	if len(responseProductType.Fields) > 0 {
+	if len(t.Fields) > 0 {
 		GetFields, err := serviceProduct.SearchFields(*tx, responseProductType.Id)
 		if err != nil {
 			tx.Rollback()
@@ -114,22 +118,34 @@ func (serviceProduct *ServiceProductGroup) UpdateType(t product.Type) error {
 			"update": {},
 			"delete": {},
 		}
-		for _, OriginField := range GetFields {
-			var isDeleted = true
-			for _, field := range responseProductType.Fields {
-				if field.Id == OriginField.Id || field.Id == 0 {
-					updates["update"] = append(updates["update"], field)
-					isDeleted = false
-					break
+		if len(GetFields) == 0 {
+			updates["update"] = append(updates["update"], t.Fields...)
+		} else {
+			for _, OriginField := range GetFields {
+				var isDeleted = true
+				for _, field := range t.Fields {
+					fmt.Println(field)
+					if field.Id == OriginField.Id {
+						fmt.Println("yes, ", field)
+						updates["update"] = append(updates["update"], field)
+						isDeleted = false
+					} else if field.Id == 0 {
+						if field.Name == OriginField.Name {
+							tx.Rollback()
+							return fmt.Errorf("更新同名Field时需携带id")
+						}
+						updates["update"] = append(updates["update"], field)
+					}
+				}
+				if isDeleted {
+					updates["delete"] = append(updates["delete"], OriginField)
 				}
 			}
-			if isDeleted {
-				updates["delete"] = append(updates["delete"], OriginField)
-			}
 		}
+
 		if len(updates["update"]) > 0 {
 			for _, field := range updates["update"] {
-				field.TypeId = responseProductType.Id // Ensure foreign key is set
+				field.TypeId = responseProductType.Id
 				if field.Id == 0 {
 					if err := tx.Create(&field).Error; err != nil {
 						tx.Rollback()
@@ -149,9 +165,10 @@ func (serviceProduct *ServiceProductGroup) UpdateType(t product.Type) error {
 				return err
 			}
 		}
+		fmt.Println(updates)
 	} //Fields更新逻辑
 
-	if len(responseProductType.Formulas) > 0 {
+	if len(t.Formulas) > 0 {
 		GetFormulas, err := serviceProduct.SearchFormulas(*tx, responseProductType.Id)
 		if err != nil {
 			tx.Rollback()
@@ -161,22 +178,39 @@ func (serviceProduct *ServiceProductGroup) UpdateType(t product.Type) error {
 			"update": {},
 			"delete": {},
 		}
-		for _, OriginFormula := range GetFormulas {
-			var isDeleted = true
-			for _, formula := range responseProductType.Formulas {
-				if formula.Id == OriginFormula.Id || formula.Id == 0 {
-					updates["update"] = append(updates["update"], formula)
-					isDeleted = false
-					break
+		if len(GetFormulas) == 0 {
+			updates["update"] = append(updates["update"], t.Formulas...)
+		} else {
+			for _, OriginFormula := range GetFormulas {
+				var isDeleted = true
+				for _, formula := range t.Formulas {
+					if formula.Id == OriginFormula.Id {
+						if formula.Id == 0 {
+							if formula.Name == OriginFormula.Name {
+								tx.Rollback()
+								return fmt.Errorf("更新同名Formula时需携带id")
+							}
+							updates["update"] = append(updates["update"], formula)
+						}
+					} else if formula.Id == 0 {
+						if formula.Name == OriginFormula.Name {
+							tx.Rollback()
+							return fmt.Errorf("更新同名Formula时需携带id")
+						}
+						updates["update"] = append(updates["update"], formula)
+					} else {
+						isDeleted = false
+					}
+				}
+				if isDeleted {
+					updates["delete"] = append(updates["delete"], OriginFormula)
 				}
 			}
-			if isDeleted {
-				updates["delete"] = append(updates["delete"], OriginFormula)
-			}
 		}
+
 		if len(updates["update"]) > 0 {
 			for _, formula := range updates["update"] {
-				formula.TypeId = responseProductType.Id // Ensure foreign key is set
+				formula.TypeId = responseProductType.Id
 				if formula.Id == 0 {
 					if err := tx.Create(&formula).Error; err != nil {
 						tx.Rollback()

@@ -1,14 +1,18 @@
-package controll
+package rate
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"project/logic"
-	"project/logic/model"
+	"project/logic/model/rate"
 	"sort"
 	"time"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type RateResponse struct {
@@ -27,7 +31,7 @@ var token = "6e4911c07c8f13f11da1962b"
 
 // var wg sync.WaitGroup
 
-func RataApiUpdate() ([]model.Rate, error) {
+func (r *ServiceRateGroup) RataApiUpdate() ([]rate.Rate, error) {
 	httpAddress := fmt.Sprintf("https://v6.exchangerate-api.com/v6/%v/latest/CNY", token)
 	resp, err := http.Get(httpAddress)
 	if err != nil {
@@ -41,27 +45,23 @@ func RataApiUpdate() ([]model.Rate, error) {
 	if err != nil {
 		return nil, fmt.Errorf("解析接口数据失败: %v", err)
 	}
-
 	var RateResponse RateResponse
 	if err := json.Unmarshal(body, &RateResponse); err != nil {
 		return nil, fmt.Errorf("解析JSON失败: %v", err)
 	}
-	// fmt.Println(RateResponse)
-	var rates []model.Rate
+	var rates []rate.Rate
 	for k, v := range RateResponse.ConversionRates {
-		rate := model.Rate{
+		rate := rate.Rate{
 			CurrencyName: k,
 			Cost:         v,
 			UpdateTime:   time.Unix(RateResponse.TimeLastUpdateUnix, 0),
 		}
 		rates = append(rates, rate)
 	}
-	// for i := range rates {
-	_, err = model.RateSearchAndPush(logic.Gorm, rates)
+	_, err = RateSearchAndPush(logic.Gorm, rates)
 	if err != nil {
 		return nil, err
 	}
-	// }
 	sort.Slice(rates, func(i, j int) bool {
 		// 根据 "name" 字段的字典顺序排序
 		return rates[i].Id < rates[j].Id
@@ -69,23 +69,51 @@ func RataApiUpdate() ([]model.Rate, error) {
 	return rates, nil
 }
 
-func RateUpdate(name string, descEn string, descCn string, icon string, sort uint) error {
-	rate := &model.Rate{
-		CurrencyName:  name,
-		DescriptionEn: descEn,
-		DescriptionCn: descCn,
-		CountryIcon:   icon,
-		Sort:          sort,
+func (r *ServiceRateGroup) RateUpdate(updateRate rate.Rate) error {
+	var rates *rate.Rate
+	if err := logic.Gorm.Where("currency_name = ?", &updateRate.CurrencyName).First(&rates).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("查询不到该币种: %v", err)
+		}
 	}
-	err := rate.RateUpdate(logic.Gorm)
-	if err != nil {
-		return err
+	if err := logic.Gorm.Model(&rate.Rate{}).Where("currency_name = ?", rates.CurrencyName).Updates(map[string]interface{}{
+		"description_en": updateRate.DescriptionEn,
+		"description_cn": updateRate.DescriptionCn,
+		"country_icon":   updateRate.CountryIcon,
+		"country":        updateRate.Country,
+		"organization":   updateRate.Organization,
+		"sort":           updateRate.Sort,
+	}).Error; err != nil {
+		return fmt.Errorf("更改该币种信息失败: %v", err)
 	}
 	return nil
 }
 
-func RateGet() ([]model.Rate, error) {
-	rates, err := model.RateSearch(logic.Gorm)
+func (r *ServiceRateGroup) RateGet() ([]rate.Rate, error) {
+	var rates []rate.Rate
+	err := logic.Gorm.Order("id ASC").Find(&rates).Error
+	if err != nil {
+		return nil, err
+	}
+	return rates, nil
+}
+
+func (r *ServiceRateGroup) RateGetName(name string) (*rate.Rate, error) {
+	var rate *rate.Rate
+	err := logic.Gorm.Where("currency_name = ? ", name).First(&rate).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("查询不到该币种: %v", err)
+		}
+	}
+	return rate, nil
+}
+
+func RateSearchAndPush(db *gorm.DB, rates []rate.Rate) ([]rate.Rate, error) {
+	err := db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "currency_name"}},
+		DoUpdates: clause.AssignmentColumns([]string{"currency_name", "cost", "update_time", "updated_at"}),
+	}).Create(&rates).Error
 	if err != nil {
 		return nil, err
 	}

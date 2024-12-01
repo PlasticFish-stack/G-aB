@@ -42,6 +42,7 @@ func JWTMiddleware() gin.HandlerFunc {
 		// 将用户名存储在上下文中
 		c.Set("username", claims.UserName)
 		c.Set("userid", claims.UserId)
+		c.Set("rolesId", claims.RoleId)
 		c.Next()
 	}
 }

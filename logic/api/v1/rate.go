@@ -2,20 +2,18 @@ package V1
 
 import (
 	"net/http"
-	"project/logic/controll"
-	"project/logic/model"
+	"project/logic/model/rate"
 
 	"github.com/gin-gonic/gin"
 )
 
-func RateGet(c *gin.Context) {
+type RateApi struct{}
+
+func (r *RateApi) RateGet(c *gin.Context) {
 	responseBody := &Response{Success: true}
-	rates, err := controll.RateGet()
+	rates, err := RateService.RateGet()
 	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
@@ -23,14 +21,11 @@ func RateGet(c *gin.Context) {
 	c.JSON(http.StatusOK, responseBody)
 }
 
-func RateApiUpdate(c *gin.Context) {
+func (r *RateApi) RateApiUpdate(c *gin.Context) {
 	responseBody := &Response{Success: true}
-	_, err := controll.RataApiUpdate()
+	_, err := RateService.RataApiUpdate()
 	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
@@ -38,24 +33,18 @@ func RateApiUpdate(c *gin.Context) {
 	c.JSON(http.StatusOK, responseBody)
 }
 
-func RateUpdate(c *gin.Context) {
+func (r *RateApi) RateUpdate(c *gin.Context) {
 	responseBody := &Response{Success: true}
-	var rate model.Rate
+	var rate rate.Rate
 	err := c.ShouldBindJSON(&rate)
 	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
-	err = controll.RateUpdate(rate.CurrencyName, rate.DescriptionEn, rate.DescriptionCn, rate.CountryIcon, rate.Sort)
+	err = RateService.RateUpdate(rate)
 	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}

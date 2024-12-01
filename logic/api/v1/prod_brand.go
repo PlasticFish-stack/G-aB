@@ -2,20 +2,17 @@ package V1
 
 import (
 	"net/http"
-	"project/logic/controll"
-	"project/logic/model"
+	"project/logic"
+	"project/logic/model/product"
 
 	"github.com/gin-gonic/gin"
 )
 
 func ProductBrandGetAll(c *gin.Context) {
 	responseBody := &Response{Success: true}
-	result, err := controll.ProductBrandGetAll()
+	result, err := productService.SearchBrands()
 	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
@@ -25,24 +22,16 @@ func ProductBrandGetAll(c *gin.Context) {
 
 func ProductBrandAdd(c *gin.Context) {
 	responseBody := &Response{Success: true}
-	var productBrand model.ProductBrand
-	err := c.ShouldBindJSON(&productBrand)
+	var prodBrand []product.Brand
+	err := c.ShouldBindJSON(&prodBrand)
 	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
-	err = controll.ProductBrandAdd(
-		productBrand.Name,
-		productBrand.Description)
+	err = productService.AddBrands(prodBrand)
 	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
@@ -52,17 +41,16 @@ func ProductBrandAdd(c *gin.Context) {
 
 func ProductBrandUpdate(c *gin.Context) {
 	responseBody := &Response{Success: true}
-	var productBrand model.ProductBrand
-	err := c.ShouldBindJSON(&productBrand)
-	err = controll.ProductBrandUpdate(
-		productBrand.Id,
-		productBrand.Name,
-		productBrand.Description)
+	var prodBrand product.Brand
+	err := c.ShouldBindJSON(&prodBrand)
 	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+		isErr(err, responseBody)
+		c.JSON(http.StatusNotFound, responseBody)
+		return
+	}
+	err = productService.UpdateBrands(prodBrand)
+	if err != nil {
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
@@ -72,22 +60,16 @@ func ProductBrandUpdate(c *gin.Context) {
 
 func ProductBrandDelete(c *gin.Context) {
 	responseBody := &Response{Success: true}
-	var prodBrand model.ProductBrand
+	var prodBrand []product.Brand
 	err := c.ShouldBindJSON(&prodBrand)
 	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
-	err = controll.ProductBrandDelete(prodBrand.Id, prodBrand.Name)
+	err = productService.DeleteBrands(*logic.Gorm, prodBrand)
 	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}

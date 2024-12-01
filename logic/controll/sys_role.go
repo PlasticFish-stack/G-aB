@@ -1,7 +1,6 @@
 package controll
 
 import (
-	"fmt"
 	"project/logic"
 	"project/logic/model"
 )
@@ -33,16 +32,13 @@ func RoleUpdate(id uint, name string, identifier string, description string, sta
 	return nil
 }
 
-func RoleDelete(id uint, name string) error {
+func RoleDelete(id uint) error {
 	var Role = model.Role{
 		Global: model.Global{Id: id},
 	}
 	resultUser, err := Role.Search(logic.Gorm)
 	if err != nil {
 		return err
-	}
-	if name != resultUser.Name {
-		return fmt.Errorf("角色名与id不匹配")
 	}
 	if err := resultUser.Delete(logic.Gorm); err != nil {
 		return err
@@ -64,6 +60,26 @@ func BindRoleMenu(roleId uint, menuId []uint) error {
 		Global: model.Global{Id: roleId},
 	}
 	err := role.Bind(logic.Gorm, menuId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func BindRoleApi(roleId uint, apiId []uint) error {
+	role := &model.Role{
+		Global: model.Global{Id: roleId},
+	}
+	err := role.BindApi(logic.Gorm, apiId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func BindRoleField(roleId uint, fieldId []uint) error {
+	role := &model.Role{
+		Global: model.Global{Id: roleId},
+	}
+	err := role.BindField(logic.Gorm, fieldId)
 	if err != nil {
 		return err
 	}

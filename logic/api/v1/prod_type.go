@@ -1,30 +1,28 @@
 package V1
 
 import (
+	"fmt"
 	"net/http"
-	"project/logic/controll"
-	"project/logic/model"
 	"project/logic/model/product"
-	"project/logic/service/tool"
 
 	"github.com/gin-gonic/gin"
 )
 
 type ProductTypeApi struct{}
 
-func (p *ProductTypeApi) GetListProdType(c *gin.Context) {
+func (p *ProductTypeApi) GetProdTypeList(c *gin.Context) {
 	responseBody := &Response{Success: true}
-	var limits tool.RequestLimits
-	err := c.ShouldBindJSON(&limits)
-	typeList, reslimits, err := productService.SearchTypeTree(limits)
+	// var limits tool.RequestLimits
+	// err := c.ShouldBindJSON(&limits)
+	// typeList, reslimits, err := productService.SearchTypeTree(limits)
+	typeList, err := productService.SearchTypeTree()
 	if err != nil {
 		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
 	responseBody.Data = map[string]interface{}{
-		"data":   typeList,
-		"limits": reslimits,
+		"data": typeList,
 	}
 	c.JSON(http.StatusOK, responseBody)
 }
@@ -52,20 +50,10 @@ func (p *ProductTypeApi) UpdateProdType(c *gin.Context) {
 	responseBody := &Response{Success: true}
 	var prodType product.Type
 	err := c.ShouldBindJSON(&prodType)
-	err = controll.ProductTypeUpdate(
-		productType.Id,
-		productType.Name,
-		productType.Description,
-		productType.Sort,
-		productType.ParentId,
-		productType.Tax,
-		productType.Field,
-		productType.Formulas)
+	fmt.Println(prodType, "type")
+	err = productService.UpdateType(prodType)
 	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
+		isErr(err, responseBody)
 		c.JSON(http.StatusNotFound, responseBody)
 		return
 	}
@@ -73,27 +61,21 @@ func (p *ProductTypeApi) UpdateProdType(c *gin.Context) {
 	c.JSON(http.StatusOK, responseBody)
 }
 
-func ProductTypeDelete(c *gin.Context) {
-	responseBody := &Response{Success: true}
-	var prodType model.ProdType
-	err := c.ShouldBindJSON(&prodType)
-	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
-		c.JSON(http.StatusNotFound, responseBody)
-		return
-	}
-	err = controll.ProductTypeDelete(prodType.Id, prodType.Name)
-	if err != nil {
-		responseBody.Success = false
-		responseBody.Data = map[string]interface{}{
-			"error": err.Error(),
-		}
-		c.JSON(http.StatusNotFound, responseBody)
-		return
-	}
-	responseBody.Data = "删除成功"
-	c.JSON(http.StatusOK, responseBody)
-}
+// func (p *ProductTypeApi) DeleteProdType(c *gin.Context) {
+// 	responseBody := &Response{Success: true}
+// 	var prodType product.Type
+// 	err := c.ShouldBindJSON(&prodType)
+// 	if err != nil {
+// 		isErr(err, responseBody)
+// 		c.JSON(http.StatusNotFound, responseBody)
+// 		return
+// 	}
+// 	err = controll.ProductTypeDelete(prodType.Id, prodType.Name)
+// 	if err != nil {
+// 		isErr(err, responseBody)
+// 		c.JSON(http.StatusNotFound, responseBody)
+// 		return
+// 	}
+// 	responseBody.Data = "删除成功"
+// 	c.JSON(http.StatusOK, responseBody)
+// }

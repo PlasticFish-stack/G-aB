@@ -58,7 +58,7 @@ func (serviceProduct *ServiceProductGroup) UpdateFields(fields []product.Field) 
 func (serviceProduct *ServiceProductGroup) DeleteFields(db gorm.DB, fields []product.Field) error {
 	err := db.Delete(fields).Error
 	if err != nil {
-		return fmt.Errorf("更新Fields失败: %v", err)
+		return fmt.Errorf("删除Fields失败: %v", err)
 	}
 	return nil
 }

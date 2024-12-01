@@ -1,15 +1,26 @@
 package V1
 
 import (
-	"project/logic/service/product"
+	"project/logic/service"
 )
 
 type ApiGroup struct {
 	ProductTypeApi
+	ProductApi
+	ExcelApi
+	RateApi
+	RoleApi
+	ApiApi
+	FieldApi
 }
 
+var ApiGroupApp = new(ApiGroup)
+
 var (
-	productService = product.ServiceProductGroupApp
+	productService = service.ServiceGroupApp.ProductServiceGroup
+	ExcelService   = service.ServiceGroupApp.ExcelServiceGroup
+	RateService    = service.ServiceGroupApp.RateServiceGroup
+	systemService  = service.ServiceGroupApp.SystemServiceGroup
 )
 
 func isErr(err error, body *Response) {

@@ -24,6 +24,7 @@ func Login(username string, password string, ip string) (*ResultUser, error) {
 	var userResult ResultUser
 	var result *model.User
 	var err error
+	var roles []model.Role
 	user := &model.User{
 		Name:     username,
 		Password: password,
@@ -32,14 +33,22 @@ func Login(username string, password string, ip string) (*ResultUser, error) {
 	if result, err = user.Login(logic.Gorm); err != nil {
 		return nil, err
 	}
-
 	if err = model.UpdateLoginMsg(logic.Gorm, result.Id, ip); err != nil {
 		return nil, err
+	}
+	if roles, err = GetBindUserRole(result.Id); err != nil {
+		return nil, err
+	}
+	var rolesId []uint
+	var role []string
+	for _, v := range roles {
+		rolesId = append(rolesId, v.Id)
+		role = append(role, v.Identifier)
 	}
 	userResult.AccessToken,
 		userResult.RefreshToken,
 		userResult.ExpTime,
-		err = GenerateJwt(result.Name, result.Id)
+		err = GenerateJwt(result.Name, result.Id, rolesId)
 	if err != nil {
 		return nil, fmt.Errorf("签发token失败: %v", err)
 	}
@@ -56,11 +65,6 @@ func Login(username string, password string, ip string) (*ResultUser, error) {
 	userResult.Avatar = &result.Picture
 	userResult.Username = result.Name
 	userResult.Nickname = &result.Nickname
-	roles, err := result.GetBind(logic.Gorm)
-	var role []string
-	for _, v := range roles {
-		role = append(role, v.Identifier)
-	}
 
 	userResult.Role = role
 

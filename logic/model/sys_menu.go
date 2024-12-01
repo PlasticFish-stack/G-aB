@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"fmt"
+
 	"sort"
 	"time"
 
@@ -46,14 +47,15 @@ func SearchFlatMenu(db *gorm.DB) ([]Menu, error) {
 }
 
 func SearchTreeMenu(db *gorm.DB) ([]*Menu, error) {
-	var menus []Menu
+	var menus []*Menu
 	if err := db.Order("menus_sort").Find(&menus).Error; err != nil {
 		return nil, fmt.Errorf("查询菜单失败: %v", err)
 	}
+	fmt.Println(menus)
 	treeMapMenus := make(map[uint]*Menu)
 	for i := range menus {
 		menus[i].Children = []Menu{}
-		treeMapMenus[menus[i].Id] = &menus[i]
+		treeMapMenus[menus[i].Id] = menus[i]
 	}
 	var treeMenus []*Menu
 	for i := range menus {
@@ -103,6 +105,16 @@ func (menu *Menu) Delete(db *gorm.DB) error {
 	var count int64
 	if err := tx.Model(&Menu{}).Where("parent_id = ?", menu.Id).Count(&count).Error; err != nil {
 		return fmt.Errorf("查询菜单是否有子菜单失败: %v", err)
+	}
+	var field *Field
+	err := tx.Where("parent_menu_id = ?", menu.Id).First(&field).Error
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("查询menu绑定field失败: %v", err)
+		}
+	}
+	if field != nil {
+		return fmt.Errorf("该菜单仍有字段使用: %v", field)
 	}
 	if count > 0 {
 		return fmt.Errorf("该菜单存在子菜单")
