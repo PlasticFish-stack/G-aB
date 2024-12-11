@@ -52,27 +52,19 @@ func roleRouter(router *gin.Engine) {
 func apiRouter(router *gin.Engine) {
 	private := router.Group("/api")
 	{
-		private.POST("/add", api.Add)
-		private.POST("/update", roleApi.Update)
-		private.DELETE("/delete", roleApi.Delete)
-		private.POST("/bind-menu", roleApi.BindMenu)
-		private.POST("/bind-api-field", roleApi.BindApiField)
-		private.GET("/get-all", roleApi.GetGroup)
-		private.GET("/get-bind-menu", roleApi.GetBindMenu)
-		private.GET("/get-bind-api-field", roleApi.GetBindMenu)
+		private.POST("/add", apiApi.ApiAdd)
+		private.POST("/update", apiApi.ApiUpdate)
+		private.DELETE("/delete", apiApi.ApiDelete)
+		private.GET("/get-all", apiApi.ApiGetAll)
 	}
 }
 func fieldRouter(router *gin.Engine) {
-	private := router.Group("/api")
+	private := router.Group("/field")
 	{
-		private.POST("/add", roleApi.Add)
-		private.POST("/update", roleApi.Update)
-		private.DELETE("/delete", roleApi.Delete)
-		private.POST("/bind-menu", roleApi.BindMenu)
-		private.POST("/bind-api-field", roleApi.BindApiField)
-		private.GET("/get-all", roleApi.GetGroup)
-		private.GET("/get-bind-menu", roleApi.GetBindMenu)
-		private.GET("/get-bind-api-field", roleApi.GetBindMenu)
+		private.POST("/add", fieldApi.FieldAdd)
+		private.POST("/update", fieldApi.FieldUpdate)
+		private.DELETE("/delete", fieldApi.FieldDelete)
+		private.GET("/get-all", fieldApi.FieldGetAll)
 	}
 }
 func menuRouter(router *gin.Engine) {
